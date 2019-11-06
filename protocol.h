@@ -148,15 +148,15 @@ protected:
         char *key_ptr;
         unsigned int key_len;
     };
-    
+
     char *m_buffer;
     char *m_buffer_ptr;
     unsigned int m_buffer_size;
-    
+
     key_entry *m_keys;
     unsigned int m_keys_size;
     unsigned int m_keys_count;
-    
+
 public:
     keylist(unsigned int max_keys);
     ~keylist();
@@ -179,7 +179,7 @@ public:
     abstract_protocol();
     virtual ~abstract_protocol();
     virtual abstract_protocol* clone(void) = 0;
-    void set_buffers(struct evbuffer* read_buf, struct evbuffer* write_buf);    
+    void set_buffers(struct evbuffer* read_buf, struct evbuffer* write_buf);
     void set_keep_value(bool flag);
 
     virtual int select_db(int db) = 0;
@@ -200,5 +200,33 @@ public:
 };
 
 class abstract_protocol *protocol_factory(const char *proto_name);
+
+typedef union {
+    struct {
+        uint8_t version;
+        uint8_t type;
+        uint32_t length;
+        uint16_t length_2;
+    } aerospike_request;
+    uint8_t bytes[8];
+} aerospike_protocol_header;
+
+typedef union {
+    struct {
+        uint8_t header_sz;
+        uint8_t info1;
+        uint8_t info2;
+        uint8_t info3;
+        uint8_t unused;
+        uint8_t result_code;
+        uint32_t generation;
+        uint32_t record_ttl;
+        uint32_t transaction_ttl;
+        uint16_t n_fields;
+        uint16_t n_ops;
+    } aerospike_message;
+    uint8_t bytes[22];
+} aerospike_message_header;
+
 
 #endif  /* _PROTOCOL_H */

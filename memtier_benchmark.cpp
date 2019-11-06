@@ -479,8 +479,9 @@ static int config_parse_args(int argc, char *argv[], struct benchmark_config *cf
                 case 'P':
                     if (strcmp(optarg, "memcache_text") &&
                         strcmp(optarg, "memcache_binary") &&
-                        strcmp(optarg, "redis")) {
-                                fprintf(stderr, "error: supported protocols are 'memcache_text', 'memcache_binary' and 'redis'.\n");
+                        strcmp(optarg, "redis") &&
+                        strcmp(optarg, "aerospike")) {
+                                fprintf(stderr, "error: supported protocols are 'aerospike', 'memcache_text', 'memcache_binary' and 'redis'.\n");
                                 return -1;
                     }
                     cfg->protocol = optarg;

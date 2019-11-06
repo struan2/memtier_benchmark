@@ -35,7 +35,7 @@
 
 abstract_protocol::abstract_protocol() :
     m_read_buf(NULL), m_write_buf(NULL), m_keep_value(false)
-{    
+{
 }
 
 abstract_protocol::~abstract_protocol()
@@ -109,7 +109,7 @@ void protocol_response::set_total_len(unsigned int total_len)
 }
 
 unsigned int protocol_response::get_total_len(void)
-{    
+{
     return m_total_len;
 }
 
@@ -266,7 +266,7 @@ int redis_protocol::write_command_set(const char *key, int key_len, const char *
     } else {
         char expiry_str[30];
         snprintf(expiry_str, sizeof(expiry_str)-1, "%u", expiry);
-        
+
         size = evbuffer_add_printf(m_write_buf,
             "*4\r\n"
             "$5\r\n"
@@ -298,7 +298,7 @@ int redis_protocol::write_command_get(const char *key, int key_len, unsigned int
     assert(key != NULL);
     assert(key_len > 0);
     int size = 0;
-    
+
     if (!offset) {
         size = evbuffer_add_printf(m_write_buf,
             "*2\r\n"
@@ -306,7 +306,7 @@ int redis_protocol::write_command_get(const char *key, int key_len, unsigned int
             "GET\r\n"
             "$%u\r\n", key_len);
         evbuffer_add(m_write_buf, key, key_len);
-        evbuffer_add(m_write_buf, "\r\n", 2);        
+        evbuffer_add(m_write_buf, "\r\n", 2);
         size += key_len + 2;
     } else {
         char offset_str[30];
@@ -324,7 +324,7 @@ int redis_protocol::write_command_get(const char *key, int key_len, unsigned int
             "$%u\r\n"
             "%s\r\n"
             "$2\r\n"
-            "-1\r\n", (unsigned int) strlen(offset_str), offset_str);        
+            "-1\r\n", (unsigned int) strlen(offset_str), offset_str);
     }
 
     return size;
@@ -659,7 +659,7 @@ int memcache_text_protocol::write_command_set(const char *key, int key_len, cons
     assert(value != NULL);
     assert(value_len > 0);
     int size = 0;
-    
+
     size = evbuffer_add_printf(m_write_buf,
         "set %.*s 0 %u %u\r\n", key_len, key, expiry, value_len);
     evbuffer_add(m_write_buf, value, value_len);
@@ -691,18 +691,18 @@ int memcache_text_protocol::write_command_multi_get(const keylist *keylist)
     n = evbuffer_add(m_write_buf, "get", 3);
     assert(n != -1);
     size = 3;
-    
+
     for (unsigned int i = 0; i < keylist->get_keys_count(); i++) {
         const char *key;
         unsigned int key_len;
-        
+
         n = evbuffer_add(m_write_buf, " ", 1);
         assert(n != -1);
         size++;
 
         key = keylist->get_key(i, &key_len);
         assert(key != NULL);
-        
+
         n = evbuffer_add(m_write_buf, key, key_len);
         assert(n != -1);
         size += key_len;
@@ -725,15 +725,15 @@ int memcache_text_protocol::parse_response(void)
 {
     char *line;
     size_t tmplen;
-    
+
     while (true) {
         switch (m_response_state) {
             case rs_initial:
                 m_last_response.clear();
                 m_response_state = rs_read_section;
                 m_response_len = 0;
-                break;                
-                
+                break;
+
             case rs_read_section:
                 line = evbuffer_readln(m_read_buf, &tmplen, EVBUFFER_EOL_CRLF_STRICT);
                 if (!line)
@@ -743,8 +743,8 @@ int memcache_text_protocol::parse_response(void)
                 if (m_last_response.get_status() == NULL) {
                     m_last_response.set_status(line);
                 }
-                m_last_response.set_total_len((unsigned int) m_response_len);   // for now...                    
-                
+                m_last_response.set_total_len((unsigned int) m_response_len);   // for now...
+
                 if (memcmp(line, "VALUE", 5) == 0) {
                     char prefix[50];
                     char key[256];
@@ -773,13 +773,13 @@ int memcache_text_protocol::parse_response(void)
                     return -1;
                 }
                 break;
-                
-            case rs_read_value:                
+
+            case rs_read_value:
                 if (evbuffer_get_length(m_read_buf) >= m_value_len + 2) {
                     if (m_keep_value) {
                         char *value = (char *) malloc(m_value_len);
                         assert(value != NULL);
-                            
+
                         int ret = evbuffer_remove(m_read_buf, value, m_value_len);
                         assert((unsigned int) ret == 0);
 
@@ -802,7 +802,7 @@ int memcache_text_protocol::parse_response(void)
             case rs_read_end:
                 m_response_state = rs_initial;
                 return 1;
-                
+
             default:
                 benchmark_debug_log("unknown response state %d.\n", m_response_state);
                 return -1;
@@ -877,7 +877,7 @@ int memcache_binary_protocol::authenticate(const char *credentials)
     user_len = colon - user;
     passwd = colon + 1;
     passwd_len = strlen(passwd);
-    
+
     memset(&req, 0, sizeof(req));
     req.message.header.request.magic = PROTOCOL_BINARY_REQ;
     req.message.header.request.opcode = PROTOCOL_BINARY_CMD_SASL_AUTH;
@@ -1001,7 +1001,7 @@ int memcache_binary_protocol::parse_response(void)
     while (true) {
         int ret;
         int status;
-        
+
         switch (m_response_state) {
             case rs_initial:
                 if (evbuffer_get_length(m_read_buf) < sizeof(m_response_hdr))
@@ -1030,21 +1030,21 @@ int memcache_binary_protocol::parse_response(void)
                     status == PROTOCOL_BINARY_RESPONSE_EBUSY) {
                     m_last_response.set_error(true);
                 }
-                
+
                 if (ntohl(m_response_hdr.message.header.response.bodylen) > 0) {
                     m_response_hdr.message.header.response.bodylen = ntohl(m_response_hdr.message.header.response.bodylen);
                     m_response_hdr.message.header.response.keylen = ntohs(m_response_hdr.message.header.response.keylen);
-                    
+
                     m_response_state = rs_read_body;
                     continue;
                 }
 
-                return 1;                
+                return 1;
                 break;
             case rs_read_body:
                 if (evbuffer_get_length(m_read_buf) >= m_response_hdr.message.header.response.bodylen) {
                     // get rid of extras and key, we don't care about them
-                    ret = evbuffer_drain(m_read_buf, 
+                    ret = evbuffer_drain(m_read_buf,
                         m_response_hdr.message.header.response.extlen +
                         m_response_hdr.message.header.response.keylen);
                     assert((unsigned int) ret == 0);
@@ -1064,7 +1064,7 @@ int memcache_binary_protocol::parse_response(void)
 
                     if (m_response_hdr.message.header.response.status == PROTOCOL_BINARY_RESPONSE_SUCCESS)
                         m_last_response.incr_hits();
-                    
+
                     m_response_len += m_response_hdr.message.header.response.bodylen;
                     m_response_state = rs_initial;
 
@@ -1094,6 +1094,209 @@ int memcache_binary_protocol::write_arbitrary_command(const char *val, int val_l
     assert(0);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+class aerospike_protocol : public abstract_protocol {
+protected:
+    enum response_state { rs_initial, rs_read_section, rs_read_value, rs_read_end };
+    response_state m_response_state;
+    unsigned int m_value_len;
+    size_t m_response_len;
+public:
+    aerospike_protocol() : m_response_state(rs_initial), m_value_len(0), m_response_len(0) { }
+    virtual aerospike_protocol* clone(void) { return new aerospike_protocol(); }
+    virtual int select_db(int db);
+    virtual int authenticate(const char *credentials);
+    virtual int write_command_cluster_slots();
+    virtual int write_command_set(const char *key, int key_len, const char *value, int value_len, int expiry, unsigned int offset);
+    virtual int write_command_get(const char *key, int key_len, unsigned int offset);
+    virtual int write_command_multi_get(const keylist *keylist);
+    virtual int write_command_wait(unsigned int num_slaves, unsigned int timeout);
+    virtual int parse_response(void);
+
+    // handle arbitrary command
+    virtual bool format_arbitrary_command(arbitrary_command& cmd);
+    virtual int write_arbitrary_command(const command_arg *arg);
+    virtual int write_arbitrary_command(const char *val, int val_len);
+
+};
+
+int aerospike_protocol::select_db(int db)
+{
+    assert(0);
+}
+
+int aerospike_protocol::authenticate(const char *credentials)
+{
+    assert(0);
+}
+
+int aerospike_protocol::write_command_cluster_slots()
+{
+    assert(0);
+}
+
+int aerospike_protocol::write_command_set(const char *key, int key_len, const char *value, int value_len, int expiry, unsigned int offset)
+{
+    assert(key != NULL);
+    assert(key_len > 0);
+    assert(value != NULL);
+    assert(value_len > 0);
+    int size = 0;
+    //aerospike_protocol_header header;
+    //aerospike_message_header message_header;
+ /*
+    memset(&header, 0, sizeof(header));
+    header.aerospike_request.version = 2;
+    header.aerospike_request.type = 1;
+    header.aerospike_request.length = 0;
+    header.aerospike_request.length_2 = sizeof(header) + 6;
+
+
+
+    message_header.aerospike_message.header_sz = 22;
+    message_header.aerospike_message.info1 = 2;
+    message_header.aerospike_message.info2 = 1;
+    message_header.aerospike_message.info3 = 16;
+    message_header.aerospike_message.n_fields = 1;
+    message_header.aerospike_message.n_ops = 1;
+
+*/
+
+    //evbuffer_add(m_write_buf, &header, sizeof(header));
+    //evbuffer_add_printf(m_write_buf, "info\r\n");
+
+    size = evbuffer_add_printf(m_write_buf, "SET|%s|%s\r\n", key, value);
+
+    benchmark_debug_log("Sending message \n");
+
+    return size;
+}
+
+int aerospike_protocol::write_command_get(const char *key, int key_len, unsigned int offset)
+{
+    assert(key != NULL);
+    assert(key_len > 0);
+    int size = 0;
+
+    size = evbuffer_add_printf(m_write_buf, "GET|%s\r\n", key);
+    benchmark_debug_log("Sent Get\n");
+    return size;
+}
+
+int aerospike_protocol::write_command_multi_get(const keylist *keylist)
+{
+    assert(0);
+}
+
+int aerospike_protocol::write_command_wait(unsigned int num_slaves, unsigned int timeout)
+{
+    assert(0);
+}
+
+int aerospike_protocol::parse_response(void)
+{
+    char *line;
+    size_t tmplen;
+
+    while (true) {
+        switch (m_response_state) {
+            case rs_initial:
+                m_last_response.clear();
+                m_response_state = rs_read_section;
+                m_response_len = 0;
+                break;
+
+            case rs_read_section:
+                line = evbuffer_readln(m_read_buf, &tmplen, EVBUFFER_EOL_ANY);
+                //benchmark_debug_log("line %s\n", line);
+                if (!line)
+                    return 0;
+
+                m_response_len += tmplen + 2;   // For CRLF
+                if (m_last_response.get_status() == NULL) {
+                    m_last_response.set_status(line);
+                }
+                m_last_response.set_total_len((unsigned int) m_response_len);   // for now...
+
+                if (memcmp(line, "GOT", 3) == 0) {
+                    char *value = (char *) malloc((strlen(line) - 4));
+                    strncpy(value, line + 4, strlen(line));
+
+                    m_last_response.set_value(value, m_value_len);
+
+                    m_last_response.incr_hits();
+                    m_response_len += m_value_len + 2;
+                    m_response_state = rs_read_end;
+
+                    int ret = evbuffer_drain(m_read_buf, 2);
+                    assert((unsigned int) ret == 0);
+
+                    break;
+                } else if (memcmp(line, "OK", 2) == 0) {
+                    if (m_last_response.get_status() != line)
+                        free(line);
+                    m_response_state = rs_read_end;
+                    break;
+                } else {
+                    m_last_response.set_error(true);
+                    benchmark_debug_log("unknown response: %s\n", line);
+                    return -1;
+                }
+                break;
+
+            case rs_read_value:
+                if (evbuffer_get_length(m_read_buf) >= m_value_len + 2) {
+                    if (m_keep_value) {
+                        char *value = (char *) malloc(m_value_len);
+                        assert(value != NULL);
+
+                        int ret = evbuffer_remove(m_read_buf, value, m_value_len);
+                        assert((unsigned int) ret == 0);
+
+                        m_last_response.set_value(value, m_value_len);
+                    } else {
+                        int ret = evbuffer_drain(m_read_buf, m_value_len);
+                        assert((unsigned int) ret == 0);
+                    }
+
+                    int ret = evbuffer_drain(m_read_buf, 2);
+                    assert((unsigned int) ret == 0);
+
+                    m_last_response.incr_hits();
+                    m_response_len += m_value_len + 2;
+                    m_response_state = rs_read_section;
+                } else {
+                    return 0;
+                }
+                break;
+            case rs_read_end:
+                m_response_state = rs_initial;
+                benchmark_debug_log("RTN 1\n");
+                return 1;
+
+            default:
+                benchmark_debug_log("unknown response state %d.\n", m_response_state);
+                return -1;
+        }
+    }
+
+    return -1;
+}
+
+bool aerospike_protocol::format_arbitrary_command(arbitrary_command& cmd) {
+    assert(0);
+}
+
+int aerospike_protocol::write_arbitrary_command(const command_arg *arg) {
+    assert(0);
+}
+
+int aerospike_protocol::write_arbitrary_command(const char *val, int val_len) {
+    assert(0);
+}
+
+
 /////////////////////////////////////////////////////////////////////////
 
 class abstract_protocol *protocol_factory(const char *proto_name)
@@ -1106,6 +1309,8 @@ class abstract_protocol *protocol_factory(const char *proto_name)
         return new memcache_text_protocol();
     } else if (strcmp(proto_name, "memcache_binary") == 0) {
         return new memcache_binary_protocol();
+    } else if (strcmp(proto_name, "aerospike") == 0){
+      return new aerospike_protocol();
     } else {
         benchmark_error_log("Error: unknown protocol '%s'.\n", proto_name);
         return NULL;
@@ -1129,8 +1334,8 @@ keylist::keylist(unsigned int max_keys) :
     assert(m_buffer != NULL);
     memset(m_buffer, 0, m_buffer_size);
 
-    m_buffer_ptr = m_buffer;    
-}        
+    m_buffer_ptr = m_buffer;
+}
 
 keylist::~keylist()
 {
@@ -1190,4 +1395,3 @@ void keylist::clear(void)
     m_keys_count = 0;
     m_buffer_ptr = m_buffer;
 }
-
