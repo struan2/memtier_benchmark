@@ -205,8 +205,12 @@ typedef union {
     struct {
         uint8_t version;
         uint8_t type;
-        uint32_t length;
-        uint16_t length_2;
+        uint8_t length1;
+        uint8_t length2;
+        uint8_t length3;
+        uint8_t length4;
+        uint8_t length5;
+        uint8_t length6;
     } aerospike_request;
     uint8_t bytes[8];
 } aerospike_protocol_header;
@@ -219,14 +223,33 @@ typedef union {
         uint8_t info3;
         uint8_t unused;
         uint8_t result_code;
-        uint32_t generation;
-        uint32_t record_ttl;
-        uint32_t transaction_ttl;
-        uint16_t n_fields;
-        uint16_t n_ops;
+        uint8_t generation[4];
+        uint8_t record_ttl[4];
+        uint8_t transaction_ttl[4];
+        uint8_t n_fields[2];
+        uint8_t n_ops[2];
     } aerospike_message;
     uint8_t bytes[22];
 } aerospike_message_header;
+
+typedef union {
+    struct {
+      uint8_t size[4];
+      uint8_t field_type;
+    } aerospike_fields;
+    uint8_t bytes[5];
+} aerospike_fields_header;
+
+typedef union {
+    struct {
+      uint8_t size[4];
+      uint8_t op;
+      uint8_t data_type;
+      uint8_t version;
+      uint8_t name_length;
+    } aerospike_ops;
+    uint8_t bytes[8];
+} aerospike_ops_header;
 
 
 #endif  /* _PROTOCOL_H */
