@@ -66,7 +66,7 @@ _memtier_completions()
     "-P")
     ;&
     "--protocol")
-      all_options="redis memcache_text memcache_binary"
+      all_options="redis memcache_text memcache_binary aerospike"
     ;;
     "--data-size-pattern=")
       cur=${cur#"--data-size-pattern="}
