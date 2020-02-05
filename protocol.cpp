@@ -1208,37 +1208,15 @@ int aerospike_protocol::write_command_set(const char *key, int key_len, const ch
     keyWrite.aerospike_fields.size[3] = key_len + 1;
     keyWrite.aerospike_fields.field_type = 2;
 
-    benchmark_debug_log("%s\n", key);
-
-    std::string command_string = "echo \"";
-    command_string = command_string + key + "\" | openssl dgst -ripemd160 -binary";
-    const char *command = command_string.c_str();
-    char buffererere[128];
-    std::string result = "";
-    FILE* pipe = popen(command, "r");
-    if (!pipe){
-      benchmark_debug_log("NO PIPE\n");
-    }
-
-    while (!feof(pipe)) {
-      if (fgets(buffererere, 128, pipe) != NULL)
-         result += buffererere;
-    }
-
-    pclose(pipe);
-
     size += sizeof(aerospike_fields_header);
     size += key_len;
 
     char bin_name[] = "default";
 
-    int tempSize = strlen(bin_name) + 4 + value_len;
-
     valueWrite.aerospike_ops.size[0] = 0;
     valueWrite.aerospike_ops.size[1] = 0;
     valueWrite.aerospike_ops.size[2] = 0;
     valueWrite.aerospike_ops.size[3] = strlen(bin_name) + 4 + value_len;
-    benchmark_debug_log("%i\n", tempSize);
     valueWrite.aerospike_ops.op = 2;
     valueWrite.aerospike_ops.data_type = 3;
     valueWrite.aerospike_ops.version = 0;
@@ -1259,45 +1237,28 @@ int aerospike_protocol::write_command_set(const char *key, int key_len, const ch
 
     //WRITE IN ORDER
     //HEADER
-    int a = evbuffer_add(m_write_buf, &header, sizeof(header));
+    evbuffer_add(m_write_buf, &header, sizeof(header));
     //message_header
-    benchmark_debug_log("%i\n", a);
-    int b = evbuffer_add(m_write_buf, &message_header, sizeof(message_header));
+    evbuffer_add(m_write_buf, &message_header, sizeof(message_header));
     //namespacer
-    benchmark_debug_log("%i\n", b);
-    int c = evbuffer_add(m_write_buf, &namespacer, sizeof(namespacer));
+    evbuffer_add(m_write_buf, &namespacer, sizeof(namespacer));
     //(the namespace name)
-    benchmark_debug_log("%i\n", c);
-    int d = evbuffer_add(m_write_buf, namspace_name, sizeof(namspace_name)-1);
+    evbuffer_add(m_write_buf, namspace_name, sizeof(namspace_name)-1);
     //set
-    benchmark_debug_log("%i\n", d);
-    int e = evbuffer_add(m_write_buf, &set, sizeof(set));
+    evbuffer_add(m_write_buf, &set, sizeof(set));
     //(the set name)
-    benchmark_debug_log("%i\n", e);
-    int f = evbuffer_add(m_write_buf, namspace_name, sizeof(namspace_name)-1);
+    evbuffer_add(m_write_buf, namspace_name, sizeof(namspace_name)-1);
     // key
-    benchmark_debug_log("%i\n", f);
-    int g = evbuffer_add(m_write_buf, &keyWrite, sizeof(keyWrite));
+    evbuffer_add(m_write_buf, &keyWrite, sizeof(keyWrite));
     // (the key name)
-    benchmark_debug_log("%i\n", g);
-    const char *result_array = result.c_str();
-    benchmark_debug_log("%s\n", result_array);
-    int h = evbuffer_add(m_write_buf, key, key_len);
+    evbuffer_add(m_write_buf, key, key_len);
     // value
-    benchmark_debug_log("%i\n", h);
-    int i = evbuffer_add(m_write_buf, &valueWrite, sizeof(valueWrite));
+    evbuffer_add(m_write_buf, &valueWrite, sizeof(valueWrite));
     // bin name
-    benchmark_debug_log("%i\n", i);
-    int j = evbuffer_add(m_write_buf, &bin_name, sizeof(bin_name)-1);
+    evbuffer_add(m_write_buf, &bin_name, sizeof(bin_name)-1);
     // data
-    benchmark_debug_log("%i\n", j);
-    int k = evbuffer_add(m_write_buf, value, value_len);
-    benchmark_debug_log("%i\n", k);
-    //evbuffer_add(m_write_buf, &header, sizeof(header));
-    //evbuffer_add_printf(m_write_buf, "info\r\n");
+    evbuffer_add(m_write_buf, value, value_len);
 
-    //size = evbuffer_add_printf(m_write_buf, "SET|%s|%s\r\n", key, value);
-    benchmark_debug_log("%i\n", size);
     return size;
 }
 
@@ -1399,41 +1360,26 @@ int aerospike_protocol::write_command_get(const char *key, int key_len, unsigned
 
     //WRITE IN ORDER
     //HEADER
-    int a = evbuffer_add(m_write_buf, &header, sizeof(header));
+    evbuffer_add(m_write_buf, &header, sizeof(header));
     //message_header
-    benchmark_debug_log("%i\n", a);
-    int b = evbuffer_add(m_write_buf, &message_header, sizeof(message_header));
+    evbuffer_add(m_write_buf, &message_header, sizeof(message_header));
     //namespacer
-    benchmark_debug_log("%i\n", b);
-    int c = evbuffer_add(m_write_buf, &namespacer, sizeof(namespacer));
+    evbuffer_add(m_write_buf, &namespacer, sizeof(namespacer));
     //(the namespace name)
-    benchmark_debug_log("%i\n", c);
-    int d = evbuffer_add(m_write_buf, namspace_name, sizeof(namspace_name)-1);
+    evbuffer_add(m_write_buf, namspace_name, sizeof(namspace_name)-1);
     //set
-    benchmark_debug_log("%i\n", d);
-    int e = evbuffer_add(m_write_buf, &set, sizeof(set));
+    evbuffer_add(m_write_buf, &set, sizeof(set));
     //(the set name)
-    benchmark_debug_log("%i\n", e);
-    int f = evbuffer_add(m_write_buf, namspace_name, sizeof(namspace_name)-1);
+    evbuffer_add(m_write_buf, namspace_name, sizeof(namspace_name)-1);
     // key
-    benchmark_debug_log("%i\n", f);
-    int g = evbuffer_add(m_write_buf, &keyRead, sizeof(keyRead));
+    evbuffer_add(m_write_buf, &keyRead, sizeof(keyRead));
     // (the key name)
-    benchmark_debug_log("%i\n", g);
-    int h = evbuffer_add(m_write_buf, key, key_len);
+    evbuffer_add(m_write_buf, key, key_len);
     // value
-    benchmark_debug_log("%i\n", h);
-    int i = evbuffer_add(m_write_buf, &valueRead, sizeof(valueRead));
+    evbuffer_add(m_write_buf, &valueRead, sizeof(valueRead));
     // bin name
-    benchmark_debug_log("%i\n", i);
-    int j = evbuffer_add(m_write_buf, &bin_name, sizeof(bin_name)-1);
-    benchmark_debug_log("%i\n", j);
+    evbuffer_add(m_write_buf, &bin_name, sizeof(bin_name)-1);
 
-/*
-
-    size = evbuffer_add_printf(m_write_buf, "GET|%s\r\n", key);
-    benchmark_debug_log("Sent Get\n"); */
-    benchmark_debug_log("SIZE: %i\n", size);
     return size;
 }
 
@@ -1465,6 +1411,8 @@ int aerospike_protocol::parse_response(void)
                 ret = evbuffer_remove(m_read_buf, (void *)&return_header, sizeof(return_header));
                 ret2 = evbuffer_remove(m_read_buf, (void *)&return_message, sizeof(return_message));
 
+                benchmark_debug_log("Result code was '%i'\n", return_message.aerospike_message.result_code);
+
                 if (return_header.aerospike_request.length6 > 22){
                   m_response_state = rs_read_body;
                   continue;
@@ -1484,7 +1432,9 @@ int aerospike_protocol::parse_response(void)
                 // Get the size of the message, allocate space and read it out
                 int body_len = return_op.aerospike_ops.size[3]-return_op.aerospike_ops.name_length-4;
                 char *line = (char *) malloc(body_len);
+                assert(body_len > 0);
                 ret5 = evbuffer_remove(m_read_buf, line, body_len);
+                benchmark_debug_log("Line Recived was '%s'\n", line);
 
                 m_last_response.set_value(line, body_len);
                 m_last_response.incr_hits();
